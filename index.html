@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SJR Mobile Batch - PT. Macrosentra Niagaboga</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        primary: { 50: '#f0f4ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc', 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 900: '#312e81' },
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @media print { .no-print { display: none; } }
+        body { background-color: #f8fafc; color: #1e293b; overflow-x: hidden; }
+
+        /* SJR Page Styling (For PDF) */
+        .sjr-page { 
+            width: 210mm; 
+            height: 148mm; 
+            padding: 5mm; 
+            background: white; 
+            margin: 0 auto; 
+            overflow: hidden; 
+            box-sizing: border-box; 
+            position: relative;
+            display: block;
+            flex-shrink: 0;
+            page-break-inside: avoid;
+            border-bottom: 1px dashed #ccc;
+            color: black;
+        }
+        .border-black-2 { border: 1.2pt solid black; }
+        .sjr-page table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 0.8pt solid black; }
+        .sjr-page th, .sjr-page td { border: 0.8pt solid black; padding: 1.5pt; line-height: 1.1; word-wrap: break-word; overflow-wrap: break-word; font-size: 8pt; color: black; }
+        .sjr-page th:nth-child(1) { width: 30pt; }
+        .sjr-page th:nth-child(2) { width: auto; }
+        .sjr-page th:nth-child(3) { width: 50pt; }
+        .sjr-page th:nth-child(4) { width: 80pt; }
+        .sjr-page th:nth-child(5) { width: 100pt; }
+        .sjr-page th:nth-child(6) { width: 100pt; }
+
+        /* Bottom Sheet Styles */
+        .bottom-sheet-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 1000; display: none; opacity: 0; transition: opacity 0.3s ease; }
+        .bottom-sheet { 
+            position: fixed; bottom: -100%; left: 0; right: 0; 
+            background: white; border-top-left-radius: 2.5rem; border-top-right-radius: 2.5rem; 
+            z-index: 1001; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            max-height: 90vh; display: flex; flex-direction: column;
+            box-shadow: 0 -10px 25px -5px rgba(0,0,0,0.1);
+        }
+        .bottom-sheet.open { bottom: 0; }
+        .bottom-sheet-handle { width: 40px; height: 4px; background: #e2e8f0; border-radius: 2px; margin: 12px auto; }
+
+        /* Bottom Nav */
+        .bottom-nav { 
+            position: fixed; bottom: 0; left: 0; right: 0; 
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); 
+            border-top: 1px solid #f1f5f9; padding: 12px 24px 24px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            z-index: 900; box-shadow: 0 -4px 12px rgba(0,0,0,0.03);
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #94a3b8; font-size: 10px; font-weight: 700; transition: all 0.2s; }
+        .nav-item.active { color: #4f46e5; }
+        .nav-item i { width: 20px; height: 20px; }
+
+        .fab-main { 
+            height: 56px; padding: 0 24px; background: #4f46e5; color: white; 
+            border-radius: 28px; display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4); 
+            margin-top: -32px; border: 4px solid white; transition: all 0.2s;
+            font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .fab-main:active { transform: scale(0.9); }
+
+        .input-premium { transition: all 0.2s; background: #f8fafc; border: 1.5px solid #f1f5f9; height: 56px; }
+        .input-premium:focus { background: white; border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.05); outline: none; }
+
+        .sjr-card { background: white; border-radius: 2.5rem; padding: 24px; border: 1.5px solid #f1f5f9; position: relative; overflow: hidden; }
+        .sjr-card::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: #4f46e5; }
+        
+        .tab-button {
+            padding: 10px 20px; border-radius: 14px; font-size: 11px; font-weight: 800;
+            white-space: nowrap; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #f8fafc; border: 1.5px solid #f1f5f9; color: #94a3b8;
+        }
+        .tab-button.active { background: #4f46e5; border-color: #4f46e5; color: white; transform: scale(1.05); box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2); }
+
+        .product-item { background: #f8fafc; border-radius: 1.5rem; padding: 12px; border: 1px solid #f1f5f9; transition: all 0.2s; }
+        .product-item:active { transform: scale(0.98); background: #f1f5f9; }
+        .product-item.selected { border-color: #4f46e5; background: #f5f3ff; }
+
+        #preview-modal { background: #f1f5f9; }
+        .preview-header { padding: 16px 20px; border-bottom: 1px solid #e2e8f0; background: white; }
+        .preview-content { padding: 20px 16px 100px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+    </style>
+</head>
+<body class="pb-32">
+    
+    <nav class="no-print sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-bottom border-slate-100 p-5 flex justify-between items-center px-6">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 p-2.5 rounded-2xl shadow-lg shadow-indigo-100">
+                <i data-lucide="file-text" class="w-5 h-5 text-white"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-lg tracking-tight leading-none text-slate-800">SJR <span class="text-indigo-600">Batch</span></h1>
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Field Assistant</p>
+            </div>
+        </div>
+        <button onclick="resetBatch()" class="p-2.5 text-red-500 bg-red-50 rounded-xl active:scale-90 transition-all"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+    </nav>
+
+    <div class="no-print max-w-xl mx-auto p-5 space-y-6">
+        <!-- Main Data -->
+        <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-white shadow-sm space-y-5">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Branch</label>
+                    <input type="text" id="inputBranch" value="76AB" class="w-full input-premium rounded-2xl px-5 font-bold text-sm uppercase">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tanggal</label>
+                    <input type="date" id="inputTanggal" class="w-full input-premium rounded-2xl px-5 font-bold text-xs">
+                </div>
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Outlet</label>
+                <input type="text" id="inputOutlet" value="ALFAMART DC MANADO" class="w-full input-premium rounded-2xl px-5 font-bold uppercase text-sm">
+            </div>
+        </div>
+
+        <!-- Tabs Pill Scroller -->
+        <div class="overflow-x-auto no-scrollbar py-2 -mx-5 px-5">
+            <div id="tabsHeader" class="flex items-center gap-3 min-w-max"></div>
+        </div>
+
+        <div id="batchContainer" class="min-h-[300px]"></div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav no-print">
+        <button onclick="openSignatureModal()" class="nav-item">
+            <i data-lucide="pen-tool"></i>
+            <span>Signature</span>
+        </button>
+        <button onclick="addSuffixGroup()" class="fab-main">
+            <i data-lucide="plus" class="w-5 h-5"></i>
+            <span>Tambah SJR</span>
+        </button>
+        <button onclick="openPreview()" class="nav-item">
+            <i data-lucide="eye"></i>
+            <span>Preview</span>
+        </button>
+    </div>
+
+    <!-- Bottom Sheets Modals -->
+    <div id="bs-overlay" class="bottom-sheet-overlay" onclick="closeAllBS()"></div>
+
+    <!-- Signature Sheet -->
+    <div id="signature-sheet" class="bottom-sheet">
+        <div class="bottom-sheet-handle"></div>
+        <div class="p-8 pt-2 space-y-6">
+            <div class="flex justify-between items-center">
+                <h3 class="font-black text-xl text-slate-800">Tanda Tangan</h3>
+                <button onclick="clearSignature()" class="text-red-500 font-bold text-xs uppercase tracking-widest">Reset</button>
+            </div>
+            <div class="space-y-4">
+                <input type="text" id="inputKota" placeholder="Kota / Lokasi" class="w-full input-premium rounded-2xl px-5 font-bold">
+                <canvas id="signature-canvas" class="w-full h-48 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200"></canvas>
+            </div>
+            <button onclick="saveSignature()" class="w-full py-5 bg-indigo-600 text-white rounded-[1.8rem] font-black text-sm uppercase tracking-widest shadow-xl shadow-indigo-100 active:scale-95 transition-all">Simpan Signature</button>
+        </div>
+    </div>
+
+    <!-- Gallery Sheet -->
+    <div id="gallery-sheet" class="bottom-sheet">
+        <div class="bottom-sheet-handle"></div>
+        <div class="flex-1 overflow-hidden flex flex-col p-6 pt-2">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-black text-xl text-slate-800">Cari Produk</h3>
+                <button onclick="closeAllBS()" class="p-2 bg-slate-100 rounded-xl"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="relative mb-4">
+                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                <input type="text" id="gallerySearch" placeholder="Ketik nama produk..." oninput="renderGallery()" class="w-full bg-slate-100 rounded-2xl pl-11 pr-4 py-4 text-sm font-bold border-none focus:ring-2 focus:ring-indigo-500/20">
+            </div>
+            <div id="galleryItems" class="grid grid-cols-2 gap-3 overflow-y-auto pr-1 no-scrollbar pb-10"></div>
+        </div>
+    </div>
+
+    <!-- Item Detail Sheet -->
+    <div id="detail-sheet" class="bottom-sheet" style="z-index: 1002;">
+        <div class="bottom-sheet-handle"></div>
+        <div class="p-8 pt-2 space-y-6 overflow-y-auto no-scrollbar pb-12">
+            <div class="flex items-center gap-4">
+                <div class="w-20 h-20 bg-slate-50 rounded-2xl p-2 flex-shrink-0">
+                    <img id="detailImg" src="" class="w-full h-full object-contain mix-blend-multiply">
+                </div>
+                <div>
+                    <h4 id="detailName" class="font-black text-sm uppercase text-slate-800 leading-tight"></h4>
+                    <p id="detailCategory" class="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1"></p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Quantity</label>
+                    <input type="number" id="modalQty" placeholder="0" class="w-full input-premium rounded-2xl px-5 font-black text-lg text-center text-indigo-600">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Expired Date</label>
+                    <div class="flex items-center gap-1 bg-slate-50 border border-slate-100 rounded-2xl px-3 h-[56px]">
+                        <input type="tel" id="modalExpD" maxlength="2" placeholder="DD" class="w-7 text-center bg-transparent font-bold text-sm outline-none">
+                        <span class="text-slate-300">/</span>
+                        <input type="tel" id="modalExpM" maxlength="2" placeholder="MM" class="w-7 text-center bg-transparent font-bold text-sm outline-none">
+                        <span class="text-slate-300">/</span>
+                        <input type="tel" id="modalExpY" maxlength="4" placeholder="YYYY" class="w-10 text-center bg-transparent font-bold text-sm outline-none">
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Kode Produksi</label>
+                    <input type="text" id="modalKode" placeholder="CONTOH: A123" class="w-full input-premium rounded-2xl px-5 font-bold uppercase text-sm">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Alasan Retur</label>
+                    <input type="text" id="modalAlasan" placeholder="CONTOH: EXPIRED" class="w-full input-premium rounded-2xl px-5 font-bold uppercase text-sm">
+                </div>
+            </div>
+            <button onclick="commitItem()" class="w-full py-5 bg-indigo-600 text-white rounded-[1.8rem] font-black text-sm uppercase tracking-widest shadow-xl shadow-indigo-100 active:scale-95 transition-all">Tambahkan ke SJR</button>
+        </div>
+    </div>
+
+    <!-- Preview Modal Full (Light Theme) -->
+    <div id="preview-modal" class="fixed inset-0 z-[2000] hidden flex flex-col">
+        <div class="preview-header flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <button onclick="closePreview()" class="p-3 text-slate-400 bg-slate-100 rounded-2xl active:scale-90 transition-all"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+                <div class="text-left">
+                    <h3 class="text-slate-800 font-black text-sm uppercase tracking-widest">Preview PDF</h3>
+                    <p class="text-slate-400 text-[9px] font-bold uppercase tracking-[0.2em]">Cek Layout 2-SJR</p>
+                </div>
+            </div>
+            <button onclick="downloadPDF()" class="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.15em] flex items-center gap-2 shadow-lg shadow-indigo-100 active:scale-95 transition-all">
+                <i data-lucide="download" class="w-4 h-4"></i> Download
+            </button>
+        </div>
+        <div id="previewContainer" class="preview-content no-scrollbar"></div>
+    </div>
+
+    <!-- Template -->
+    <div id="sjr-template-source" class="hidden">
+        <div class="sjr-page">
+            <div class="border-black-2 p-1">
+                <div class="flex border-b-2 border-black text-left">
+                    <div class="w-2/3 flex flex-col justify-between py-1">
+                        <div class="font-bold text-[10pt]">PT. MACROSENTRA NIAGABOGA</div>
+                        <div class="text-center mb-2">
+                            <div class="text-xl font-bold">SURAT JALAN RETUR ( SJR )</div>
+                            <div class="font-bold mt-1 uppercase text-sm">NO. SJR : JKMM<span class="viewBranch">76AB</span> - <span class="viewSuffix">....</span></div>
+                        </div>
+                    </div>
+                    <div class="w-1/3 border-l-2 border-black">
+                        <table class="w-full h-full border-none">
+                            <tr class="border-b-2 border-black bg-gray-50 text-center"><td colspan="2" class="font-bold py-1 text-[11pt] border-none">NAMA OUTLET</td></tr>
+                            <tr class="border-b-2 border-black h-10 text-center font-bold text-[12pt] uppercase leading-tight"><td colspan="2" class="border-none px-1 viewOutlet">ALFAMART DC MANADO</td></tr>
+                            <tr class="border-b border-black"><td class="pl-2 font-bold w-20 border-none text-left">No. CN</td><td class="font-bold border-none text-left">: <span class="viewNoCn">....</span></td></tr>
+                            <tr><td class="pl-2 font-bold border-none text-left text-xs">No. STTBR</td><td class="font-bold border-none text-left">: </td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="py-1 text-[8pt] font-semibold italic text-left">Mohon dapat ditarik barang returan di bawah ini :</div>
+                <table>
+                    <thead><tr class="text-center font-bold bg-gray-50 text-[8pt]"><th>No.</th><th>Nama Barang</th><th>Kuantiti</th><th>Expirated Date</th><th>No. Kode Produksi</th><th>Alasan Retur</th></tr></thead>
+                    <tbody class="viewTbody"></tbody>
+                </table>
+                <div class="mt-1 flex justify-between px-2 font-bold text-[8pt] text-left"><span><span class="viewKota">Jakarta</span>, <span class="viewTanggal">....</span></span><span class="italic">DIBAWA SUPIR</span></div>
+                <div class="mt-1 grid grid-cols-6 border-t-2 border-black text-center items-stretch">
+                    <div class="border-r-2 border-black p-1 flex flex-col justify-between min-h-[70px]">
+                        <div>
+                            <span class="font-bold underline text-[7pt]">Dilaporkan oleh,</span>
+                            <div class="w-full text-[5pt] text-left pl-1 leading-none mt-0.5">Tgl : <span class="viewTanggalSales"></span></div>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center overflow-hidden my-0.5">
+                            <img class="viewSignature max-h-8 hidden object-contain" src="">
+                        </div>
+                        <span class="font-bold text-[7pt] leading-none">( Salesman )</span>
+                    </div>
+                    <div class="border-r-2 border-black p-1 flex flex-col justify-between min-h-[70px]">
+                        <span class="font-bold underline text-[7pt]">Diberikan,</span>
+                        <div class="flex-1"></div>
+                        <span class="font-bold text-[7pt] leading-none">( Pihak Toko )</span>
+                    </div>
+                    <div class="border-r-2 border-black p-1 flex flex-col justify-between min-h-[70px]">
+                        <span class="font-bold underline text-[7pt]">Mengetahui,</span>
+                        <div class="flex-1"></div>
+                        <span class="font-bold text-[7pt] leading-none">( Sales Manager )</span>
+                    </div>
+                    <div class="border-r-2 border-black p-1 flex flex-col justify-between min-h-[70px]">
+                        <span class="font-bold underline text-[7pt]">Dibawa,</span>
+                        <div class="flex-1"></div>
+                        <span class="font-bold text-[7pt] leading-none">( Pembawa )</span>
+                    </div>
+                    <div class="col-span-2 p-1 flex flex-col justify-between min-h-[70px]">
+                        <span class="font-bold underline text-[7pt]">Diterima,</span>
+                        <div class="flex-1"></div>
+                        <div class="grid grid-cols-2 w-full text-center border-t border-black pt-1">
+                            <span class="font-bold border-r border-black px-1 text-[6pt] leading-none">( Gudang Meruya )</span>
+                            <span class="font-bold px-1 text-[6pt] leading-none">( Gudang Cikupa )</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const csvData = `Kategori,Produk,Barcode,Gambar
+Yogurt Drink 240 ml,Blueberry 240 ml,899320066165,https://c.alfagift.id/product/1/1_A10280005122_20240626114733650_base.jpg
+Yogurt Drink 240 ml,Strawberry 240 ml,899320066130,https://c.alfagift.id/product/1/1_A10280005120_20240626115100240_base.jpg
+Yogurt Drink 240 ml,Mixed Fruit 240 ml,899320066135,https://c.alfagift.id/product/1/1_A10280005121_20240920145736215_base.jpg
+Yogurt Drink 240 ml,Mixed Berry 240 ml,899320066305,https://c.alfagift.id/product/1/1_A6880790001089_20240920145758248_base.jpg
+Yogurt Drink 240 ml,Original 240 ml,899320066306,https://c.alfagift.id/product/1/1_A6880800001089_20240920145836144_base.jpg
+Yogurt Drink 240 ml,LF Strawberry Mango 240 ml,899320066500,https://c.alfagift.id/product/1/1_A7313460001001_20260128153100581_base.jpg
+Yogurt Drink 240 ml,LF Tropical Fruits 240 ml,899320066498,https://c.alfagift.id/product/1/1_A7086500001154_20250917102402100_base.jpg
+Yogurt Drink 240 ml,LF Blueberry 240 ml,899320066501,https://c.alfagift.id/product/1/1_A8312210002167_20250910150317764_base.jpg
+Yogurt Drink 240 ml,LF Stroberi 240 ml,899320066499,https://c.alfagift.id/product/1/1_A7313470001001_20250918115313783_base.jpg
+Squeeze 120 gr,Original 120 gr,899320066693,https://c.alfagift.id/product/1/1_A7451330001001_20240920102555665_base.jpg
+Squeeze 120 gr,Strawberry 120 gr,899320066694,https://c.alfagift.id/product/1/1_A7451340001001_20240920102614119_base.jpg
+Squeeze 120 gr,Blueberry 120 gr,899320066695,https://c.alfagift.id/product/1/1_A7597910001001_20240920102633146_base.jpg
+Squeeze 120 gr,Mango Sticky Rice 120 gr,899320066134,https://c.alfagift.id/product/1/1_A7741890002167_20240920102531798_base.jpg
+Squeeze 120 gr,Brown Sugar 120 gr,899320066833,https://c.alfagift.id/product/1/1_A7748960002167_20240920102858672_base.jpg
+Squeeze Bites 120 gr,Strawberry 120 gr,899320066940,https://c.alfagift.id/product/1/1_A8166180002167_20240729112109018_base.jpg
+Squeeze Bites 120 gr,Blueberry 120 gr,899320066941,https://c.alfagift.id/product/1/1_A8166190002167_20240729112100727_base.jpg
+Squeeze Bites 120 gr,Almond Kurma 120 gr,899320066924,https://c.alfagift.id/product/1/1_A8166200002167_20260317104659104_base.jpg
+Squeeze Bites 120 gr,Strawberry Lychee 120 gr,899320066926,https://c.alfagift.id/product/1/1_A8166210002167_20240729112205127_base.jpg
+Squeeze Bites 120 gr,Berry Blemd 120 gr,899320066927,https://c.alfagift.id/product/1/1_A8269630002167_20250326140551953_base.jpg
+Squeeze Bites 120 gr,Strawberry Manggo 120 gr,899320066930,https://c.alfagift.id/product/1/1_A8269620002167_20250326140548908_base.jpg
+Stick Yogurt 40 gr,Strawberry 40 gr,899320066891,https://c.alfagift.id/product/1/1_A8006350002167_20240417100250821_base.jpg
+Stick Yogurt 40 gr,Blueberry 40 gr,899320066892,https://c.alfagift.id/product/1/1_A8006340002167_20241001094047307_base.jpg
+Stick Yogurt 40 gr,Original 40 gr,899320066890,https://c.alfagift.id/product/1/1_A8130210002167_20240515095651244_base.jpg
+Stick Yogurt 40 gr,Mango Sticky Rice 40 gr,899320066936,https://c.alfagift.id/product/1/1_A8130200002167_20240515094926824_base.jpg
+Stick Yogurt 40 gr,Brown Sugar 40 gr,899320066946,https://c.alfagift.id/product/1/1_A8212140002167_20241025144852503_base.jpg
+Stick Yogurt 40 gr,Orange 40gr,899320067029,https://c.alfagift.id/product/1/1_A8321360002167_20251022132023045_base.jpg
+Stick Yogurt 40 gr,Anggur Kyoho 40 gr,899320067030,https://c.alfagift.id/product/1/1_A8321370002167_20251022133053287_base.jpg
+Eatmilk 80 gr,Chocolate 80 gr,899320066956,https://c.alfagift.id/product/1/1_A8279130002167_20250509093700498_base.jpg
+Eatmilk 80 gr,Marie Biscuits 80 gr,899320066962,https://c.alfagift.id/product/1/1_A8279140002167_20250509093710427_base.jpg
+Eatmilk 80 gr,Chocolate Hazelnut 80 gr,899320066959,https://c.alfagift.id/product/1/1_A8279120002167_20250509093650705_base.jpg
+Eatmilk 80 gr,Matcha 80 g,899320067063,https://c.alfagift.id/product/1/1_A8337290002167_20251223101100575_base.jpg
+Kanzler Singles Sosis 60 gr,Singles Keju 60 gr,899320034631,https://c.alfagift.id/product/1/1_A7538860001001_20230615132139015_base.jpg
+Kanzler Singles Sosis 60 gr,Singles Original 60 gr,899320034831,https://c.alfagift.id/product/1/1_A7538850001001_20230615132403372_base.jpg
+Kanzler Singles Sosis 60 gr,Singles Mini 60 gr,899320034731,https://c.alfagift.id/product/1/1_A7538870001001_20230615132329904_base.jpg
+Kanzler Singles Sosis 60 gr,Singles Hot 60 gr,899320034571,https://c.alfagift.id/product/1/1_A7558650001094_20230615132027699_base.jpg
+Kanzler Singles Sosis 60 gr,Singles Gochujang 60 gr,899320066824,https://c.alfagift.id/product/1/1_A7864170002167_20240903144107496_base.jpg
+Kanzler Singles Sosis 60 gr,Ayam Tom Yum 60 g,899320000003,https://c.alfagift.id/product/1/1_A8341930002167_20251229151403277_base.jpg
+Kanzler Singles Bakso 55 gr,Bakso Original 55 gr,899320066849,https://c.alfagift.id/product/1/1_A7708160002167_20240903144033718_base.jpg
+Kanzler Singles Bakso 55 gr,Bakso Keju 55 gr,899320066850,https://c.alfagift.id/product/1/1_A7708170002167_20240903144107074_base.jpg
+Kanzler Singles Bakso 55 gr,Bakso Hot 55 gr,899320066898,https://c.alfagift.id/product/1/1_A7888730002167_20240903144119063_base.jpg
+Kanzler Singles Bakso 55 gr,Bakso Gochujang 55 gr,899320000000,https://c.alfagift.id/product/1/1_A8248640002167_20250122163635628_base.jpg
+Kanzler Frozen 450 gr,Chicken Nugget Original 450 gr,899320066438,https://c.alfagift.id/product/1/1_A7768600002167_20240711141113775_base.jpg
+Kanzler Frozen 450 gr,Crispy Chicken Nugget 450 gr,899320066439,https://c.alfagift.id/product/1/1_A7768610002167_20240711141104379_base.jpg
+Kanzler Frozen 450 gr,Crispy Chicken Stick 450 gr,899320066807,https://c.alfagift.id/product/1/1_A8032770002167_20240417104547862_base.jpg
+Kanzler Frozen 450 gr,Chicken Nugget Spicy 450 gr,899320066913,https://c.alfagift.id/product/1/1_A8175020002167_20240814134832448_base.jpg
+Kanzler Frozen 450 gr,Beef Cocktail 250 gr,899320066777,https://c.alfagift.id/product/1/1_A7768630002167_20240712160216412_base.jpg
+Mini Yogurt 4x65 ml,Blueberry 4x65 ml,899320066406,https://c.alfagift.id/product/1/1_A6880780001089_20250609095043120_base.jpg
+Mini Yogurt 4x65 ml,Strawberry 4x65 ml,899320066405,https://c.alfagift.id/product/1/1_A6880770001089_20250609095032581_base.jpg
+Milk 250 ml,Chocolate 250 ml,899320066613,https://c.alfagift.id/product/1/1_A7254390001001_20240627150147084_base.jpg
+Milk 250 ml,Bebas Laktosa 250 ml,899320066615,https://c.alfagift.id/product/1/1_A7254400001001_20240627154814297_base.jpg
+Milk 250 ml,Hazelnut 250 ml,899320066680,https://c.alfagift.id/product/1/1_A7367570001139_20240627145635280_base.jpg
+Milk 250 ml,Chocomalt 250 ml,899320066689,https://c.alfagift.id/product/1/1_A7367580001139_20240627150036569_base.jpg
+Milk 250 ml,Almond 250 ml,899320066683,https://c.alfagift.id/product/1/1_A7558610001094_20240628150809728_base.jpg
+Milk 250 ml,Cashew 250 ml,899320066686,https://c.alfagift.id/product/1/1_A7558590001094_20240627145757602_base.jpg
+Milk 250 ml,Marie Biscuits 250 ml,899320066692,https://c.alfagift.id/product/1/1_A7676610001008_20240627145921534_base.jpg
+Milk 250 ml,Tiramisu 250 ml,899320066724,https://c.alfagift.id/product/1/1_A7806670002167_20240627145515270_base.jpg
+Milk 250 ml No Add Sugar,Matcha 225ml,899320067052,https://c.alfagift.id/product/1/1_A8344480002167_20260108143632407_base.jpg
+Milk 250 ml No Add Sugar,Marie Regal 225ml,899320067053,https://c.alfagift.id/product/1/1_A8343290002167_20260108144336932_base.jpg
+Milk 250 ml No Add Sugar,Chocolate 225ml,899320067049,https://c.alfagift.id/product/1/1_A8343270002167_20260108143236211_base.jpg
+Milk 250 ml No Add Sugar,Almond 225ml,899320067050,https://c.alfagift.id/product/1/1_A8343280002167_20260108143621232_base.jpg
+Milk 250 ml,Matcha 250 ml,899320066620,https://c.alfagift.id/product/1/1_A8121880002167_20240405134226596_base.jpg
+Milk Tea 250 ml,Milk Tea 250,8993200669776,https://c.alfagift.id/product/1/1_A8297740002167_20250704141347626_base.jpg
+Milk Tea 250 ml,Thai Tea 250 ml,8993200669769,https://c.alfagift.id/product/1/1_A8297750002167_20250704141355914_base.jpg
+Milk 125 ml,Chocolate 125 ml,899320066626,https://c.alfagift.id/product/1/1_A7498250001001_20260224113307798_base.jpg
+Milk 750 ml,Almond 750 ml,899320066765,https://c.alfagift.id/product/1/1_A7942710002167_20250507140224214_base.jpg
+Milk 750 ml,Chocolate 750 ml,899320066373,https://c.alfagift.id/product/1/1_A8279380002167_20250509134509087_base.jpg
+`;
+
+        const products = csvData.trim().split('\n').slice(1).map(line => {
+            const [kategori, produk, barcode, gambar] = line.split(',');
+            return { kategori, produk: `Cimory ${produk}`, barcode, gambar };
+        });
+
+        const listBarang = products.map(p => p.produk);
+
+        let groups = [{ noCn: '', suffix: '', items: [] }];
+        let activeGroupIdx = 0;
+        let signatureData = null; let hasDrawn = false; let isDrawing = false;
+        let currentGalleryTarget = null;
+        let selectedProduct = null;
+
+        const canvas = document.getElementById('signature-canvas'); const ctx = canvas.getContext('2d');
+
+        // Bottom Sheet Handlers
+        function openBS(id) {
+            document.getElementById('bs-overlay').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('bs-overlay').style.opacity = '1';
+                document.getElementById(id).classList.add('open');
+            }, 10);
+        }
+
+        function closeAllBS() {
+            const sheets = document.querySelectorAll('.bottom-sheet');
+            sheets.forEach(s => s.classList.remove('open'));
+            document.getElementById('bs-overlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('bs-overlay').style.display = 'none';
+            }, 300);
+        }
+
+        function switchTab(idx) {
+            activeGroupIdx = idx;
+            renderBatch();
+            setTimeout(() => {
+                document.querySelector(`[data-tab-idx="${idx}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }, 100);
+        }
+
+        function initSignaturePad() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio; canvas.height = canvas.offsetHeight * ratio;
+            ctx.scale(ratio, ratio); ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+            hasDrawn = false;
+            const getPos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+                return { x, y };
+            };
+            const start = (e) => { isDrawing = true; hasDrawn = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); e.preventDefault(); };
+            const move = (e) => { if(!isDrawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); };
+            const stop = () => isDrawing = false;
+            canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', stop);
+            canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', move); canvas.addEventListener('touchend', stop);
+        }
+
+        function openSignatureModal() { openBS('signature-sheet'); setTimeout(initSignaturePad, 200); }
+        function clearSignature() { ctx.clearRect(0,0,canvas.width,canvas.height); hasDrawn=false; }
+
+        function saveSignature() {
+            if(!hasDrawn) { signatureData = null; localStorage.removeItem('sjr_global_signature'); }
+            else { signatureData = canvas.toDataURL(); localStorage.setItem('sjr_global_signature', signatureData); }
+            updatePreview(); closeAllBS();
+        }
+
+        function openGallery(gIdx, iIdx = null) {
+            currentGalleryTarget = { gIdx, iIdx };
+            selectedProduct = null;
+            document.getElementById('gallerySearch').value = '';
+            renderGallery();
+            openBS('gallery-sheet');
+            
+            if (iIdx !== null) {
+                const it = groups[gIdx].items[iIdx];
+                const prod = products.find(p => p.produk === it.nama);
+                if (prod) selectProduct(prod, false); // select without opening sheet yet
+                document.getElementById('modalQty').value = it.qty;
+                document.getElementById('modalExpD').value = it.expD;
+                document.getElementById('modalExpM').value = it.expM;
+                document.getElementById('modalExpY').value = it.expY;
+                document.getElementById('modalKode').value = it.kodeProduksi;
+                document.getElementById('modalAlasan').value = it.alasan;
+                openBS('detail-sheet');
+            }
+        }
+
+        function renderGallery() {
+            const q = document.getElementById('gallerySearch').value.toLowerCase();
+            const cont = document.getElementById('galleryItems');
+            const filtered = products.filter(p => p.produk.toLowerCase().includes(q) || p.kategori.toLowerCase().includes(q));
+            cont.innerHTML = filtered.map(p => `
+                <div onclick="selectProductByBarcode('${p.barcode}')" class="product-item flex flex-col items-center text-center gap-2">
+                    <img src="${p.gambar}" class="w-16 h-16 object-contain mix-blend-multiply">
+                    <p class="text-[9px] font-black uppercase text-slate-800 leading-tight line-clamp-2 min-h-[2.2em] flex items-center justify-center">${p.produk.replace('Cimory ', '')}</p>
+                </div>
+            `).join('');
+        }
+
+        function selectProductByBarcode(barcode) {
+            const p = products.find(prod => prod.barcode === barcode);
+            if (p) selectProduct(p);
+        }
+
+        function selectProduct(p, openSheet = true) {
+            selectedProduct = p;
+            document.getElementById('detailImg').src = p.gambar;
+            document.getElementById('detailName').innerText = p.produk;
+            document.getElementById('detailCategory').innerText = p.kategori;
+            
+            if (openSheet) {
+                document.getElementById('modalQty').value = '';
+                document.getElementById('modalExpD').value = '';
+                document.getElementById('modalExpM').value = '';
+                document.getElementById('modalExpY').value = '';
+                document.getElementById('modalKode').value = '';
+                document.getElementById('modalAlasan').value = '';
+                openBS('detail-sheet');
+                setTimeout(() => document.getElementById('modalQty').focus(), 400);
+            }
+        }
+
+        function commitItem() {
+            if (!selectedProduct) return;
+            const qty = document.getElementById('modalQty').value;
+            if (!qty || qty <= 0) return;
+            
+            const { gIdx, iIdx } = currentGalleryTarget;
+            const newItem = {
+                nama: selectedProduct.produk,
+                qty: qty,
+                expD: document.getElementById('modalExpD').value,
+                expM: document.getElementById('modalExpM').value,
+                expY: document.getElementById('modalExpY').value,
+                kodeProduksi: document.getElementById('modalKode').value.toUpperCase(),
+                alasan: document.getElementById('modalAlasan').value.toUpperCase()
+            };
+            if (iIdx === null) groups[gIdx].items.push(newItem);
+            else groups[gIdx].items[iIdx] = newItem;
+            renderBatch(); updatePreview(); saveCache(); closeAllBS();
+        }
+
+        function renderBatch() {
+            const tabsCont = document.getElementById('tabsHeader');
+            const batchCont = document.getElementById('batchContainer');
+            if(!tabsCont || !batchCont) return;
+            tabsCont.innerHTML = ''; batchCont.innerHTML = '';
+            
+            groups.forEach((g, gIdx) => {
+                const isActive = gIdx === activeGroupIdx;
+                const btn = document.createElement('button');
+                btn.className = `tab-button ${isActive ? 'active' : ''}`;
+                btn.setAttribute('data-tab-idx', gIdx);
+                btn.onclick = () => switchTab(gIdx);
+                btn.innerHTML = `SJR #${gIdx+1} <span class="ml-2 opacity-50">${g.items.length}</span>`;
+                tabsCont.appendChild(btn);
+            });
+
+            const g = groups[activeGroupIdx]; const gIdx = activeGroupIdx; if(!g) return;
+            const gDiv = document.createElement('div');
+            gDiv.className = "sjr-card space-y-6";
+            gDiv.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest">SJR Batch</span>
+                        <h2 class="text-xl font-black text-slate-800">Nomor #${gIdx+1}</h2>
+                    </div>
+                    <button onclick="removeSuffixGroup(${gIdx})" class="p-3 text-red-500 bg-red-50 rounded-2xl"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">No. CN</label>
+                        <input type="text" value="${g.noCn || ''}" oninput="groups[${gIdx}].noCn=this.value; updatePreview(); saveCache();" placeholder="DR-I2..." class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold text-sm uppercase text-indigo-600">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Suffix SJR</label>
+                        <input type="text" value="${g.suffix}" oninput="groups[${gIdx}].suffix=this.value; updatePreview(); saveCache();" placeholder="0000" class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-black text-sm uppercase text-indigo-600">
+                    </div>
+                </div>
+                <div id="items-${gIdx}" class="space-y-3"></div>
+                <button onclick="openGallery(${gIdx})" class="w-full py-5 bg-indigo-50 text-indigo-600 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 border-2 border-dashed border-indigo-100">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah Produk
+                </button>
+            `;
+            batchCont.appendChild(gDiv);
+            
+            const itemCont = document.getElementById(`items-${gIdx}`);
+            g.items.forEach((it, iIdx) => {
+                const prod = products.find(p => p.produk === it.nama);
+                const iDiv = document.createElement('div');
+                iDiv.className = "p-4 bg-slate-50/80 rounded-2xl flex items-center gap-4 active:scale-[0.98] transition-all";
+                iDiv.onclick = (e) => { if(!e.target.closest('button')) openGallery(gIdx, iIdx); };
+                iDiv.innerHTML = `
+                    <div class="w-12 h-12 bg-white rounded-xl p-1.5 flex-shrink-0">
+                        <img src="${prod?.gambar || ''}" class="w-full h-full object-contain mix-blend-multiply">
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-bold text-[10px] uppercase text-slate-800 leading-tight line-clamp-2 mb-0.5">${it.nama.replace('Cimory ', '')}</h4>
+                        <p class="text-[9px] font-bold text-indigo-600">${it.qty} Pcs • ${it.expD}/${it.expM}/${it.expY}</p>
+                    </div>
+                    <button onclick="removeItem(${gIdx},${iIdx})" class="p-2 text-slate-300"><i data-lucide="x" class="w-4 h-4"></i></button>
+                `;
+                itemCont.appendChild(iDiv);
+            });
+            lucide.createIcons();
+        }
+
+        function openPreview() { updatePreview(); document.getElementById('preview-modal').style.display = 'flex'; }
+        function closePreview() { document.getElementById('preview-modal').style.display = 'none'; }
+
+        function updatePreview() {
+            const cont = document.getElementById('previewContainer'); 
+            if (!cont) return;
+            cont.innerHTML = '';
+            
+            // Transparent 1x1 pixel gif to prevent html2canvas load error
+            const emptyPix = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
+            groups.forEach((g, gIdx) => {
+                const page = document.getElementById('sjr-template-source').firstElementChild.cloneNode(true);
+                page.querySelector('.viewBranch').innerText = document.getElementById('inputBranch').value.toUpperCase();
+                page.querySelector('.viewSuffix').innerText = g.suffix.toUpperCase() || '....';
+                page.querySelector('.viewNoCn').innerText = g.noCn?.toUpperCase() || '....';
+                page.querySelector('.viewOutlet').innerText = document.getElementById('inputOutlet').value.toUpperCase();
+                page.querySelector('.viewKota').innerText = document.getElementById('inputKota').value;
+                
+                const dVal = document.getElementById('inputTanggal').value;
+                if(dVal) { 
+                    const d = new Date(dVal); 
+                    const ms = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES']; 
+                    const fmt = `${d.getDate()} ${ms[d.getMonth()]} ${d.getFullYear()}`; 
+                    page.querySelector('.viewTanggal').innerText = fmt; 
+                    page.querySelector('.viewTanggalSales').innerText = fmt; 
+                }
+
+                const img = page.querySelector('.viewSignature');
+                if(signatureData) { 
+                    img.src = signatureData; 
+                    img.classList.remove('hidden'); 
+                } else {
+                    img.src = emptyPix;
+                    img.classList.add('hidden');
+                }
+
+                const tbody = page.querySelector('.viewTbody');
+                g.items.forEach((it, iIdx) => {
+                    const tr = document.createElement('tr'); 
+                    tr.className='h-6 font-bold';
+                    let exp = it.expD && it.expM && it.expY ? `${it.expD}/${it.expM}/${it.expY}` : '';
+                    tr.innerHTML = `<td class="text-center text-[7pt]">${iIdx+1}</td><td class="px-2 uppercase text-[6.5pt]">${it.nama}</td><td class="text-center text-[8pt]">${it.qty}</td><td class="text-center text-[6.5pt]">${exp}</td><td class="text-center text-[6.5pt]">${it.kodeProduksi}</td><td class="text-center text-[6.5pt]">${it.alasan}</td>`;
+                    tbody.appendChild(tr);
+                });
+                
+                for(let i=g.items.length+1; i<=10; i++) { 
+                    const tr = document.createElement('tr'); 
+                    tr.className='h-5'; 
+                    tr.innerHTML = `<td class="text-center font-bold text-gray-200 text-[7pt]">${i}</td><td></td><td></td><td></td><td></td><td></td>`; 
+                    tbody.appendChild(tr); 
+                }
+                cont.appendChild(page);
+            });
+        }
+
+        async function downloadPDF() {
+            const el = document.getElementById('previewContainer');
+            const outlet = document.getElementById('inputOutlet').value.replace(/[^a-z0-9]/gi,'_').toUpperCase() || 'OUTLET';
+            
+            const originalClass = el.className;
+            // Gunakan inline-block biar width-nya gak melar pas rendering
+            el.className = 'flex flex-col items-center bg-white';
+
+            const opt = {
+                margin: 0,
+                filename: `SJR-BATCH-${outlet}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2, 
+                    useCORS: true,
+                    logging: false,
+                    letterRendering: true,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: 1200 // Lebar cukup buat capture A4/A5
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['css', 'legacy'] }
+            };
+            
+            try {
+                await html2pdf().set(opt).from(el).save();
+            } catch (err) {
+                console.error('PDF Error:', err);
+                alert('Gagal download PDF, bro. Coba refresh ya.');
+            } finally {
+                el.className = originalClass;
+            }
+        }
+
+        function saveCache() { const m = { branch: document.getElementById('inputBranch').value, outlet: document.getElementById('inputOutlet').value, kota: document.getElementById('inputKota').value, tanggal: document.getElementById('inputTanggal').value }; localStorage.setItem('sjr_main_data', JSON.stringify(m)); localStorage.setItem('sjr_batch_data', JSON.stringify(groups)); }
+
+        function updateSignatureStatusUI(isSigned) {
+            const navItem = document.querySelector('button[onclick="openSignatureModal()"]');
+            if (navItem) {
+                const icon = navItem.querySelector('i');
+                const text = navItem.querySelector('span');
+                if (isSigned) {
+                    navItem.classList.add('active');
+                    if (icon) icon.setAttribute('data-lucide', 'user-check');
+                    if (text) text.innerText = 'Sudah TTD';
+                } else {
+                    navItem.classList.remove('active');
+                    if (icon) icon.setAttribute('data-lucide', 'pen-tool');
+                    if (text) text.innerText = 'Signature';
+                }
+                lucide.createIcons();
+            }
+        }
+
+        function loadCache() {
+            const sig = localStorage.getItem('sjr_global_signature'); 
+            if(sig) { 
+                signatureData=sig; 
+                updateSignatureStatusUI(true); 
+            } else {
+                updateSignatureStatusUI(false);
+            }
+            
+            const main = localStorage.getItem('sjr_main_data'); 
+            if(main) { 
+                const d = JSON.parse(main); 
+                if(document.getElementById('inputBranch')) document.getElementById('inputBranch').value = d.branch || '76AB'; 
+                if(document.getElementById('inputOutlet')) document.getElementById('inputOutlet').value = d.outlet || 'ALFAMART DC MANADO'; 
+                if(document.getElementById('inputKota')) document.getElementById('inputKota').value = d.kota || 'Jakarta'; 
+                if(document.getElementById('inputTanggal')) document.getElementById('inputTanggal').value = d.tanggal || new Date().toISOString().split('T')[0]; 
+            } else {
+                if(document.getElementById('inputTanggal')) document.getElementById('inputTanggal').valueAsDate = new Date();
+            }
+            
+            const batch = localStorage.getItem('sjr_batch_data'); 
+            if(batch) groups = JSON.parse(batch);
+            
+            activeGroupIdx = 0; 
+            renderBatch(); 
+            updatePreview();
+        }
+
+        function resetBatch() { if(confirm('Hapus semua nomor SJR?')) { groups = [{ noCn: '', suffix: '', items: [] }]; activeGroupIdx = 0; localStorage.removeItem('sjr_batch_data'); renderBatch(); updatePreview(); } }
+        function addSuffixGroup() { 
+            let nextSuffix = '';
+            if (groups.length > 0) {
+                const lastSuffix = groups[groups.length - 1].suffix;
+                // Cek kalo suffix terakhir itu angka, baru kita auto-increment
+                if (lastSuffix && !isNaN(lastSuffix)) {
+                    const nextNum = parseInt(lastSuffix, 10) + 1;
+                    // PadStart biar kalo 0420 tetep jadi 0421 (bukan 421)
+                    nextSuffix = nextNum.toString().padStart(lastSuffix.length, '0');
+                }
+            }
+            groups.push({ noCn: '', suffix: nextSuffix, items: [] }); 
+            activeGroupIdx = groups.length - 1; 
+            renderBatch(); updatePreview(); saveCache(); 
+        }
+        function removeSuffixGroup(gIdx) { if(groups.length > 1) { groups.splice(gIdx, 1); activeGroupIdx = Math.max(0, activeGroupIdx - 1); renderBatch(); updatePreview(); saveCache(); } }
+        function removeItem(gIdx, iIdx) { groups[gIdx].items.splice(iIdx, 1); renderBatch(); updatePreview(); saveCache(); }
+
+        ['inputBranch', 'inputOutlet', 'inputTanggal', 'inputKota'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.addEventListener('input', () => { saveCache(); updatePreview(); });
+        });
+
+        // Auto select all text on focus for all inputs
+        document.addEventListener('focusin', (e) => {
+            if (e.target.tagName === 'INPUT' && e.target.type !== 'date') {
+                e.target.select();
+            }
+        });
+
+        // Auto tab for Expired Date inputs
+        ['modalExpD', 'modalExpM', 'modalExpY'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', (e) => {
+                    const val = e.target.value;
+                    const max = e.target.maxLength;
+                    if (val.length >= max) {
+                        const inputs = Array.from(document.querySelectorAll('input')).filter(el => el.offsetParent !== null && !el.readOnly);
+                        const index = inputs.indexOf(e.target);
+                        if (index > -1 && index < inputs.length - 1) {
+                            inputs[index + 1].focus();
+                        }
+                    }
+                });
+            }
+        });
+
+        // Enter key to next input or commit
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+                const inputs = Array.from(document.querySelectorAll('input')).filter(el => el.offsetParent !== null && !el.readOnly);
+                const index = inputs.indexOf(e.target);
+                
+                if (index > -1 && index < inputs.length - 1) {
+                    e.preventDefault();
+                    inputs[index + 1].focus();
+                } else if (e.target.id === 'modalAlasan') {
+                    e.preventDefault();
+                    commitItem();
+                }
+            }
+        });
+
+        loadCache(); lucide.createIcons();
+    </script>
+</body>
+</html>
