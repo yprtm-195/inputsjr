@@ -663,9 +663,14 @@ Milk 750 ml,Chocolate 750 ml,899320066373,https://c.alfagift.id/product/1/1_A827
             const el = document.getElementById('previewContainer');
             const outlet = document.getElementById('inputOutlet').value.replace(/[^a-z0-9]/gi,'_').toUpperCase() || 'OUTLET';
             
+            // Simpan state asli
             const originalClass = el.className;
-            // Gunakan inline-block biar width-nya gak melar pas rendering
-            el.className = 'flex flex-col items-center bg-white';
+            const originalStyle = el.style.cssText;
+
+            // PAKSA lebar container pas 210mm (Lebar A4) dan matiin centering biar gak offset
+            el.style.width = '210mm';
+            el.style.minWidth = '210mm';
+            el.className = 'bg-white'; // Hapus flex & items-center biar render dari pojok kiri atas
 
             const opt = {
                 margin: 0,
@@ -678,7 +683,7 @@ Milk 750 ml,Chocolate 750 ml,899320066373,https://c.alfagift.id/product/1/1_A827
                     letterRendering: true,
                     scrollX: 0,
                     scrollY: 0,
-                    windowWidth: 1200 // Lebar cukup buat capture A4/A5
+                    windowWidth: 800 // Paksa lebar window virtual biar pas sama 210mm @ 96dpi
                 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 pagebreak: { mode: ['css', 'legacy'] }
@@ -690,7 +695,9 @@ Milk 750 ml,Chocolate 750 ml,899320066373,https://c.alfagift.id/product/1/1_A827
                 console.error('PDF Error:', err);
                 alert('Gagal download PDF, bro. Coba refresh ya.');
             } finally {
+                // Balikin ke tampilan UI semula
                 el.className = originalClass;
+                el.style.cssText = originalStyle;
             }
         }
 
